@@ -11,6 +11,6 @@ public class ApplicationMemoryDataSource {
     }
 
     public static void setEmployeeStore(List<Employee> employeeStore) {
-        EMPLOYEE_STORE = employeeStore;
+        EMPLOYEE_STORE.addAll(employeeStore);
     }
 }

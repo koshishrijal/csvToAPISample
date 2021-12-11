@@ -2,7 +2,6 @@ package com.kosh.csvrestapi.data;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonSetter;
 import com.kosh.csvrestapi.exception.MoneyProcessorException;
 import lombok.extern.slf4j.Slf4j;
 

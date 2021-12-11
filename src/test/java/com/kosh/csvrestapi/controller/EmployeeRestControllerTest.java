@@ -1,12 +1,10 @@
 package com.kosh.csvrestapi.controller;
 
-import com.kosh.csvrestapi.batch.JobCompletionNotificationListener;
 import com.kosh.csvrestapi.data.Employee;
 import com.kosh.csvrestapi.data.Money;
 import com.kosh.csvrestapi.exception.MoneyProcessorException;
 import com.kosh.csvrestapi.repository.EmployeeRepository;
 import org.junit.Assert;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +20,6 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.assertj.core.api.Assertions.assertThat;
 
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -49,11 +46,36 @@ class EmployeeRestControllerTest {
         data = (Map<String, Object>) responseEntity.getBody();
         System.out.println(data);
         Assert.assertTrue(data.containsKey("employees"));
-        List<Employee> employeeResultList = getEmployeeListFromMapResponse(data);
+        List<Employee> employeeResultList = getEmployeeListFromMapResponse_WithResponseJsonAssertionForDepartment(data);
         Assert.assertEquals(1, employeeResultList.size());
         Assert.assertEquals(0, employeeResultList.stream().filter(e -> !e.getDepartment().equals("ENG")).collect(Collectors.toList()).size());
         Assert.assertEquals("Robert", employeeResultList.get(0).getFirstName());
 
+    }
+
+    private List<Employee> getEmployeeListFromMapResponse_WithResponseJsonAssertionForDepartment(Map<String, Object> data) {
+        List<Employee> employeeList = new ArrayList<>();
+        if (!data.containsKey("employees") || data.get("employees") == null) {
+            return employeeList;
+        }
+        List<Map> employeeListRaw = (List) data.get("employees");
+        if (employeeListRaw.isEmpty()) {
+            return employeeList;
+        }
+        for (Map empRaw : employeeListRaw) {
+            Employee employee = new Employee();
+            Assert.assertTrue(empRaw.containsKey("age"));
+            Assert.assertTrue(empRaw.containsKey("department"));
+            Assert.assertTrue(empRaw.containsKey("firstName"));
+            Assert.assertTrue(empRaw.containsKey("lastName"));
+            Assert.assertFalse(empRaw.containsKey("income"));
+            employee.setAge((Integer) empRaw.get("age"));
+            employee.setDepartment((String) empRaw.get("department"));
+            employee.setFirstName((String) empRaw.get("firstName"));
+            employee.setLastName((String) empRaw.get("lastName"));
+            employeeList.add(employee);
+        }
+        return employeeList;
     }
 
     @Test
@@ -67,11 +89,11 @@ class EmployeeRestControllerTest {
         data = (Map<String, Object>) responseEntity.getBody();
         System.out.println(data);
         Assert.assertTrue(data.containsKey("employees"));
-        List<Employee> employeeResultList = getEmployeeListFromMapResponse(data);
+        List<Employee> employeeResultList = getEmployeeListFromMapResponse_WithResponseJsonAssertionForDepartment(data);
         Assert.assertEquals(0, employeeResultList.size());
     }
 
-    private List<Employee> getEmployeeListFromMapResponse(Map data) throws MoneyProcessorException {
+    private List<Employee> getEmployeeListFromMapResponse_WithResponseJsonAssertion(Map data) throws MoneyProcessorException {
         List<Employee> employeeList = new ArrayList<>();
         if (!data.containsKey("employees") || data.get("employees") == null) {
             return employeeList;
@@ -82,6 +104,11 @@ class EmployeeRestControllerTest {
         }
         for (Map empRaw : employeeListRaw) {
             Employee employee = new Employee();
+            Assert.assertTrue(empRaw.containsKey("age"));
+            Assert.assertTrue(empRaw.containsKey("department"));
+            Assert.assertTrue(empRaw.containsKey("firstName"));
+            Assert.assertTrue(empRaw.containsKey("lastName"));
+            Assert.assertTrue(empRaw.containsKey("income"));
             employee.setAge((Integer) empRaw.get("age"));
             employee.setDepartment((String) empRaw.get("department"));
             employee.setFirstName((String) empRaw.get("firstName"));
@@ -122,7 +149,7 @@ class EmployeeRestControllerTest {
         data = (Map<String, Object>) responseEntity.getBody();
         System.out.println(data);
         Assert.assertTrue(data.containsKey("employees"));
-        List<Employee> employeeResultList = getEmployeeListFromMapResponse(data);
+        List<Employee> employeeResultList = getEmployeeListFromMapResponse_WithResponseJsonAssertion(data);
         Assert.assertEquals(3, employeeResultList.size());
         Assert.assertEquals(0, employeeResultList.stream().filter(e -> (e.getAge() < 30)).collect(Collectors.toList()).size());
     }
@@ -164,7 +191,7 @@ class EmployeeRestControllerTest {
         data = (Map<String, Object>) responseEntity.getBody();
         System.out.println(data);
         Assert.assertTrue(data.containsKey("employees"));
-        List<Employee> employeeResultList = getEmployeeListFromMapResponse(data);
+        List<Employee> employeeResultList = getEmployeeListFromMapResponse_WithResponseJsonAssertion(data);
         Assert.assertEquals(4, employeeResultList.size());
         Assert.assertEquals(0, employeeResultList.stream().filter(e ->
                 e.getIncome().getAmount().compareTo(new BigDecimal("2000")) < 1 ? true : false)

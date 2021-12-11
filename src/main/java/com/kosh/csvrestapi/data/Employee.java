@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Employee {
+public class Employee  {
     private String firstName;
     private String lastName;
     private int age;

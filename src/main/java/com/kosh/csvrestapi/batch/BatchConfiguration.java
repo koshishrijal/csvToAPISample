@@ -6,28 +6,19 @@ import com.kosh.csvrestapi.data.EmployeeDataProcessor;
 import com.kosh.csvrestapi.data.EmployeeInput;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
-import org.springframework.batch.core.SkipListener;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
-import org.springframework.batch.item.database.BeanPropertyItemSqlParameterSourceProvider;
-import org.springframework.batch.item.database.JdbcBatchItemWriter;
-import org.springframework.batch.item.database.builder.JdbcBatchItemWriterBuilder;
 import org.springframework.batch.item.file.FlatFileItemReader;
-import org.springframework.batch.item.file.FlatFileParseException;
 import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
 import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
-
-import javax.sql.DataSource;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 
 
 @Configuration
@@ -43,12 +34,15 @@ public class BatchConfiguration {
     @Autowired
     public StepBuilderFactory stepBuilderFactory;
 
+    @Value("${employeeFile.name}")
+    private String employeeCsvFile;
+
     @Bean
     public FlatFileItemReader<EmployeeInput> reader() {
         return new FlatFileItemReaderBuilder<EmployeeInput>()
                 .linesToSkip(0)
                 .name("employeeItemReader")
-                .resource(new ClassPathResource("employee.csv"))
+                .resource(new ClassPathResource(employeeCsvFile))
                 .delimited().delimiter(",")
                 .names(EMPLOYEE_FIELD_NAMES)
                 .fieldSetMapper(new BeanWrapperFieldSetMapper<EmployeeInput>() {{
@@ -69,7 +63,7 @@ public class BatchConfiguration {
 
     @Bean
     public Job importUserJob(JobCompletionNotificationListener listener, Step csvToJavaStep) {
-        return jobBuilderFactory.get("importUserJob")
+        return jobBuilderFactory.get("employeeCsvToJavaJob")
                 .incrementer(new RunIdIncrementer())
                 .listener(listener)
                 .flow(csvToJavaStep)
@@ -80,7 +74,7 @@ public class BatchConfiguration {
     @Bean
     public Step csvToJavaStep(EmployeeCollectionWriter writer) {
         return stepBuilderFactory.get("csvToJavaStep")
-                .<EmployeeInput, Employee>chunk(1)
+                .<EmployeeInput, Employee>chunk(10)
                 .reader(reader())
                 .processor(processor())
                 .writer(writer)
@@ -88,7 +82,7 @@ public class BatchConfiguration {
                 .skip(Exception.class)
                 .skipLimit(50)
                 .skipPolicy((throwable, i) -> {
-                    log.error("====Encountered Error:{} ",throwable.getMessage());
+                    log.error("====Encountered Error=====:{} ", throwable.getMessage());
                     return true;
                 })
                 .build();

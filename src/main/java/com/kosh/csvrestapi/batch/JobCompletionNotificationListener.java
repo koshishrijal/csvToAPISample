@@ -24,7 +24,7 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
     @Override
     public void afterJob(JobExecution jobExecution) {
         if (jobExecution.getStatus() == BatchStatus.COMPLETED) {
-            log.info("!Job Completed! verifying the results");
+            log.info("Job Completed! verifying the results");
             List<Employee> employeeList = employeeRepository.findAllEmployee();
             int employeeListSize = employeeList.size();
             log.info("Employee List size:{}", employeeListSize);

@@ -1,5 +1,6 @@
-package com.kosh.csvrestapi.data;
+package com.kosh.csvrestapi.repository;
 
+import com.kosh.csvrestapi.data.Employee;
 import com.kosh.csvrestapi.repository.EmployeeRepository;
 import org.springframework.stereotype.Repository;
 
